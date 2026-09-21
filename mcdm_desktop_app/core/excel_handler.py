@@ -137,5 +137,38 @@ def parse_config_excel(file_path: str, config: ProjectConfig) -> ProjectConfig:
 
     return config
 
+def export_all_experts_results(file_code_path: str, file_value_path: str,
+                               config: ProjectConfig,
+                               all_experts_data: dict,
+                               row_labels: list, col_labels: list):
+    """Xuất TOÀN BỘ kết quả của tất cả chuyên gia vào 2 file Excel riêng biệt:
+       Mỗi Chuyên gia là 1 Sheet."""
+    
+    # 1. Xuất file 1: ALL_EXPERTS_RAW_CODES
+    with pd.ExcelWriter(file_code_path, engine="openpyxl") as writer_code:
+        # Sheet tổng quan Metadata
+        meta_list = [
+            {"Parameter": "Model_Type", "Value": config.model_type},
+            {"Parameter": "Use_Z_Number", "Value": "YES" if config.use_z_number else "NO"},
+            {"Parameter": "Scale_Type", "Value": config.scale_type},
+            {"Parameter": "Total_Experts_Saved", "Value": len(all_experts_data)}
+        ]
+        pd.DataFrame(meta_list).to_excel(writer_code, sheet_name="General_Info", index=False)
+
+        for exp_name, data in all_experts_data.items():
+            # Tên sheet Excel tối đa 31 ký tự, loại bỏ ký tự cấm
+            safe_sheet_name = exp_name.replace(":", "_").replace("/", "_")[:30]
+            df = pd.DataFrame(data["code_matrix"], index=row_labels, columns=col_labels)
+            df.to_excel(writer_code, sheet_name=safe_sheet_name)
+
+    # 2. Xuất file 2: ALL_EXPERTS_NUMERICAL_VALUES
+    with pd.ExcelWriter(file_value_path, engine="openpyxl") as writer_val:
+        pd.DataFrame(meta_list).to_excel(writer_val, sheet_name="General_Info", index=False)
+
+        for exp_name, data in all_experts_data.items():
+            safe_sheet_name = exp_name.replace(":", "_").replace("/", "_")[:30]
+            df = pd.DataFrame(data["value_matrix"], index=row_labels, columns=col_labels)
+            df.to_excel(writer_val, sheet_name=safe_sheet_name)
+
 if __name__ == "__main__":
     generate_default_template()

@@ -150,3 +150,16 @@ class MatrixCellWidget(QWidget):
                         self.spin_cert.setValue(float(parts[1].strip()))
                     except ValueError:
                         pass
+
+    def reset_to_default(self):
+        """Khôi phục ô về giá trị mặc định ban đầu."""
+        if not self.is_continuous:
+            if hasattr(self, 'cb_eval'):
+                self.cb_eval.setCurrentIndex(0)
+            if hasattr(self, 'cb_cert'):
+                self.cb_cert.setCurrentIndex(0)
+        else:
+            if hasattr(self, 'spin_eval'):
+                self.spin_eval.setValue(self.c_min)
+            if hasattr(self, 'spin_cert'):
+                self.spin_cert.setValue(1.0)
